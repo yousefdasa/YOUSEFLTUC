@@ -1,198 +1,524 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>حساب تكلفة الفصل</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-color: #0f001f;
-      color: #fff;
-      font-family: 'Cairo', sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظم الديون</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #34495e; /* أزرق داكن */
+            --secondary-color: #2ecc71; /* أخضر بحري */
+            --bg-color: #ecf0f1; /* رمادي فاتح جدًا */
+            --card-bg-color: #ffffff; /* أبيض */
+            --danger-color: #e74c3c; /* أحمر */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-heavy: rgba(0, 0, 0, 0.15);
+        }
 
-    h2 {
-      color: #ff66cc;
-      text-shadow: 0 0 10px #ff66cc;
-      text-align: center;
-      font-size: 24px;
-    }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
 
-    label, select, input, legend {
-      display: block;
-      margin: 10px 0 5px;
-      font-size: 16px;
-    }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            padding: 2rem 1.5rem;
+            box-shadow: 2px 0 10px var(--shadow-light);
+            display: flex;
+            flex-direction: column;
+        }
 
-    select, input[type="number"], input[type="text"] {
-      background-color: #1a0033;
-      color: #fff;
-      border: 2px solid #cc00ff;
-      padding: 10px;
-      width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #cc00ff;
-    }
+        .sidebar-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
 
-    fieldset {
-      margin-top: 15px;
-      border: 2px solid #ff66cc;
-      padding: 10px;
-      border-radius: 10px;
-    }
+        .sidebar-header h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
 
-    fieldset label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
+        #search-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
 
-    input[type="checkbox"] {
-      accent-color: #ff66cc;
-      margin: 0;
-    }
+        .sidebar-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
 
-    button {
-      margin-top: 20px;
-      padding: 12px;
-      background-color: #cc00ff;
-      color: white;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #ff66cc;
-      width: 100%;
-      transition: 0.3s;
-    }
+        .sidebar-list li {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    button:hover {
-      background-color: #ff33cc;
-      box-shadow: 0 0 25px #ff99dd;
-    }
+        .sidebar-list li:hover {
+            background-color: #f0f0f0;
+            transform: translateX(-5px);
+        }
+        
+        .sidebar-list li.active {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
 
-    input[readonly] {
-      background-color: #300040;
-      color: #ccc;
-    }
+        #show-all-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s ease;
+        }
 
-    @media (max-width: 480px) {
-      body {
-        padding: 15px;
-        font-size: 15px;
-      }
-      h2 {
-        font-size: 20px;
-      }
-    }
-  </style>
+        #show-all-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--card-bg-color);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px var(--shadow-heavy);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .add-debtor-section {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        #debtor-name-input {
+            flex-grow: 1;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            font-size: 1rem;
+            max-width: 400px;
+            box-shadow: inset 0 1px 3px var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+        
+        #debtor-name-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px var(--secondary-color);
+        }
+
+        #add-debtor-btn {
+            padding: 0.8rem 2rem;
+            background-color: var(--secondary-color);
+            color: var(--card-bg-color);
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 6px var(--shadow-light);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #add-debtor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px var(--shadow-light);
+        }
+
+        .debtors-container {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        }
+
+        .debtor-card {
+            background-color: var(--card-bg-color);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 6px 15px var(--shadow-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .debtor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px var(--shadow-heavy);
+        }
+
+        .debtor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .debtor-header h2 {
+            margin: 0;
+            color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .delete-debtor-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .delete-debtor-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .debtor-info {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .total-due {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+
+        .add-transaction-section {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .add-transaction-section input {
+            padding: 0.7rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        .add-transaction-section button {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.2s ease;
+        }
+
+        .add-debt-btn {
+            background-color: #3498db; /* أزرق فاتح */
+        }
+        .pay-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .add-transaction-section button:hover {
+            transform: scale(1.05);
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .transactions-table th, .transactions-table td {
+            padding: 0.8rem;
+            text-align: right;
+        }
+
+        .transactions-table th {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .transactions-table td {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .transactions-table tr:first-child td {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .transactions-table tr:last-child td {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .delete-transaction-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                box-shadow: 0 2px 10px var(--shadow-light);
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h2>💡 حاسبة تكلفة الفصل</h2>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>المدينون</h2>
+            <input type="text" id="search-input" placeholder="ابحث عن مدين...">
+        </div>
+        <ul id="sidebar-list" class="sidebar-list">
+            </ul>
+        <button id="show-all-btn">إظهار الكل</button>
+    </aside>
 
-  <label for="program">البرنامج:</label>
-  <select id="program" onchange="filterMajors()">
-    <option value="450">البكالوريوس - 450 دينار</option>
-    <option value="400">الدبلوم الدولي - 400 دينار</option>
-    <option value="325">الدبلوم المحلي - 325 دينار</option>
-  </select>
+    <main class="main-content">
+        <header class="header"><h1>منظم الديون</h1></header>
+        <div class="add-debtor-section">
+            <input type="text" id="debtor-name-input" placeholder="اسم المدين">
+            <button id="add-debtor-btn">إضافة مدين</button>
+        </div>
+        <div id="debtors-container" class="debtors-container"></div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const debtorNameInput = document.getElementById('debtor-name-input');
+            const addDebtorBtn = document.getElementById('add-debtor-btn');
+            const debtorsContainer = document.getElementById('debtors-container');
+            const sidebarList = document.getElementById('sidebar-list');
+            const searchInput = document.getElementById('search-input');
+            const showAllBtn = document.getElementById('show-all-btn');
+            
+            let debtors = {};
+            
+            const loadState = () => {
+                try {
+                    const savedData = localStorage.getItem('debtors');
+                    debtors = savedData ? JSON.parse(savedData) : {};
+                } catch (e) {
+                    console.error("Failed to load state from localStorage:", e);
+                    debtors = {};
+                }
+            };
 
-  <label for="major">التخصص:</label>
-  <select id="major"></select>
+            const saveState = () => {
+                try {
+                    localStorage.setItem('debtors', JSON.stringify(debtors));
+                } catch (e) {
+                    console.error("Failed to save state to localStorage:", e);
+                }
+            };
+            
+            const calculateTotal = (transactions) => transactions.reduce((sum, trans) => sum + (trans.type === 'debt' ? trans.amount : -trans.amount), 0);
 
-  <fieldset>
-    <legend>رسوم إضافية:</legend>
-    <label><input type="checkbox" id="pearson" value="100"> رسوم بيرسون - 100 دينار</label>
-    <label><input type="checkbox" id="placement" value="50"> امتحان مستوى - 50 دينار</label>
-    <label><input type="checkbox" id="studentFund" value="1"> صندوق الطالب - 1 دينار</label>
-  </fieldset>
+            const renderDebtorCard = (id, data) => {
+                const total = calculateTotal(data.transactions);
+                const cardElement = document.createElement('div');
+                cardElement.className = 'debtor-card';
+                cardElement.dataset.id = id;
+                cardElement.innerHTML = `
+                    <div class="debtor-header">
+                        <h2>${data.name}</h2>
+                        <button class="delete-debtor-btn">حذف المدين</button>
+                    </div>
+                    <p class="debtor-info">
+                        المجموع المتبقي: <span class="total-due">${total.toFixed(2)}</span>
+                    </p>
+                    <div class="add-transaction-section">
+                        <input type="number" class="amount-input" placeholder="المبلغ" step="0.01" min="0">
+                        <input type="text" class="note-input" placeholder="ملاحظة (اختياري)">
+                        <button class="add-debt-btn">إضافة دين</button>
+                        <button class="pay-btn">سداد</button>
+                    </div>
+                    <table class="transactions-table">
+                        <thead><tr><th>العملية</th><th>المبلغ</th><th>الملاحظة</th><th>إجراء</th></tr></thead>
+                        <tbody>
+                            ${data.transactions.map((trans, index) => `
+                                <tr data-index="${index}">
+                                    <td>${trans.type === 'debt' ? 'دين' : 'سداد'}</td>
+                                    <td>${trans.amount.toFixed(2)}</td>
+                                    <td>${trans.note || '-'}</td>
+                                    <td><button class="delete-transaction-btn">حذف</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                debtorsContainer.prepend(cardElement);
+            };
 
-  <label for="hours">عدد الساعات:</label>
-  <input type="number" id="hours" min="1">
+            const renderSidebar = (filter = '') => {
+                sidebarList.innerHTML = '';
+                const sortedDebtors = Object.keys(debtors).sort((a, b) => debtors[a].name.localeCompare(debtors[b].name, 'ar'));
 
-  <label for="discount">نسبة الخصم (%):</label>
-  <input type="number" id="discount" min="0" max="100">
+                sortedDebtors.forEach(id => {
+                    const data = debtors[id];
+                    if (data.name.toLowerCase().includes(filter.toLowerCase())) {
+                        const li = document.createElement('li');
+                        li.textContent = data.name;
+                        li.dataset.id = id;
+                        sidebarList.appendChild(li);
+                    }
+                });
+            };
 
-  <label for="priceBeforeDiscount">سعر الساعات قبل الخصم:</label>
-  <input type="text" id="priceBeforeDiscount" readonly>
+            const refreshView = () => {
+                debtorsContainer.innerHTML = '';
+                const sortedDebtors = Object.keys(debtors).sort((a, b) => {
+                    const totalA = calculateTotal(debtors[a].transactions);
+                    const totalB = calculateTotal(debtors[b].transactions);
+                    return totalB - totalA;
+                });
+                sortedDebtors.forEach(id => renderDebtorCard(id, debtors[id]));
+                renderSidebar();
+            };
 
-  <label for="priceAfterDiscount">سعر الساعات بعد الخصم:</label>
-  <input type="text" id="priceAfterDiscount" readonly>
+            addDebtorBtn.addEventListener('click', () => {
+                const name = debtorNameInput.value.trim();
+                if (name) {
+                    const id = Date.now().toString();
+                    debtors[id] = { name, transactions: [] };
+                    saveState();
+                    refreshView();
+                    debtorNameInput.value = '';
+                }
+            });
 
-  <label for="total">التكلفة النهائية:</label>
-  <input type="text" id="total" readonly>
+            // معالجة النقر على أسماء المدينين في القائمة الجانبية
+            sidebarList.addEventListener('click', (e) => {
+                const li = e.target.closest('li');
+                if (!li) return;
+                const id = li.dataset.id;
+                
+                // إزالة التحديد من جميع العناصر
+                document.querySelectorAll('.sidebar-list li').forEach(item => item.classList.remove('active'));
+                
+                // إضافة التحديد للعنصر الذي تم النقر عليه
+                li.classList.add('active');
 
-  <button onclick="calculate()">احسب</button>
+                // عرض بطاقة المدين المحدد فقط
+                debtorsContainer.innerHTML = '';
+                renderDebtorCard(id, debtors[id]);
+            });
 
-  <script>
-    const majorsData = {
-      "البكالوريوس": [
-        { name: "علم البيانات والذكاء الاصطناعي", value: 59 },
-        { name: "الحوسبة السحابية", value: 59 },
-        { name: "تقنيات صناعة الأسنان", value: 69 },
-        { name: "العمارة الداخلية والديكور", value: 49 },
-        { name: "هندسة تكنولوجيا السيارات", value: 59 },
-        { name: "إدارة فنون الطهي", value: 69 },
-        { name: "اللوجستيات وسلاسل الإمداد", value: 45 },
-        { name: "إدارة الفنادق والفعاليات", value: 45 }
-      ],
-      "الدبلوم الدولي": [
-        { name: "جميع التخصصات", value: 45 }
-      ],
-      "الدبلوم المحلي": [
-        { name: "التجميل", value: 35 },
-        { name: "فنون الطهي", value: 39 },
-        { name: "مختبرات الأسنان", value: 39 },
-        { name: "صيانة المركبات الهجينة", value: 35 }
-      ]
-    };
+            // معالجة البحث في القائمة الجانبية
+            searchInput.addEventListener('input', (e) => {
+                const filter = e.target.value;
+                renderSidebar(filter);
+            });
+            
+            // زر إظهار الكل
+            showAllBtn.addEventListener('click', () => {
+                refreshView();
+                document.querySelectorAll('.sidebar-list li').forEach(item => item.classList.remove('active'));
+                searchInput.value = '';
+            });
 
-    function filterMajors() {
-      const program = document.getElementById("program");
-      const selected = program.options[program.selectedIndex].text.split(" - ")[0];
-      const majorSelect = document.getElementById("major");
-      majorSelect.innerHTML = "";
-      majorsData[selected].forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.value;
-        option.textContent = `${opt.name} - ${opt.value} دينار`;
-        majorSelect.appendChild(option);
-      });
-    }
+            debtorsContainer.addEventListener('click', (e) => {
+                const card = e.target.closest('.debtor-card');
+                if (!card) return;
+                const id = card.dataset.id;
+                const currentDebtor = debtors[id];
 
-    function calculate() {
-      const programFee = parseFloat(document.getElementById("program").value);
-      const hourRate = parseFloat(document.getElementById("major").value);
-      const hours = parseFloat(document.getElementById("hours").value);
-      const discountPercent = parseFloat(document.getElementById("discount").value) || 0;
+                if (e.target.classList.contains('delete-debtor-btn')) {
+                    if (confirm(`هل أنت متأكد من حذف ${currentDebtor.name}؟`)) {
+                        delete debtors[id];
+                        saveState();
+                        refreshView();
+                    }
+                } else if (e.target.classList.contains('add-debt-btn') || e.target.classList.contains('pay-btn')) {
+                    const amountInput = card.querySelector('.amount-input');
+                    const noteInput = card.querySelector('.note-input');
+                    const amount = parseFloat(amountInput.value);
+                    const note = noteInput.value;
+                    if (amount > 0) {
+                        const type = e.target.classList.contains('add-debt-btn') ? 'debt' : 'payment';
+                        currentDebtor.transactions.push({ type, amount, note });
+                        saveState();
+                        refreshView();
+                        amountInput.value = '';
+                        noteInput.value = '';
+                    }
+                } else if (e.target.classList.contains('delete-transaction-btn')) {
+                    const row = e.target.closest('tr');
+                    const index = row.dataset.index;
+                    currentDebtor.transactions.splice(index, 1);
+                    saveState();
+                    refreshView();
+                }
+            });
 
-      let extraFees = 0;
-      if (document.getElementById("pearson").checked) extraFees += 100;
-      if (document.getElementById("placement").checked) extraFees += 50;
-      if (document.getElementById("studentFund").checked) extraFees += 1;
-
-      const priceBefore = hourRate * hours;
-      document.getElementById("priceBeforeDiscount").value = priceBefore.toFixed(2);
-
-      const discountValue = priceBefore * (discountPercent / 100);
-      const priceAfter = priceBefore - discountValue;
-      document.getElementById("priceAfterDiscount").value = priceAfter.toFixed(2);
-
-      const total = priceAfter + programFee + extraFees;
-      document.getElementById("total").value = total.toFixed(2);
-    }
-
-    window.onload = filterMajors;
-  </script>
-  <p style="text-align:center; margin-top:30px; font-size:12px; color:#aaa;">
-  تم التصميم بواسطة <strong style="color:#ff66cc;">YOUSEF DASA</strong> – جميع الحقوق محفوظة ©
-</p>
-
+            loadState();
+            refreshView();
+        });
+    </script>
 </body>
 </html>
